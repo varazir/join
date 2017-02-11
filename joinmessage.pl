@@ -22,10 +22,6 @@ our %IRSSI = (
    );
 
 my $wget_Cmd = "wget --tries=2 --timeout=10 --no-check-certificate -qO- /dev/null";
-my $join_Token;
-my $join_Text;
-my $join_Url;
-my $join_Title;
 my $join_Command;
 
 sub cmd_help {
@@ -81,58 +77,58 @@ Irssi::signal_stop;
 }
 
 sub join_msg_new {
+    my $join_args;
     my ($data, $server, $item) = @_;    
-    my ($join_Args, $join_Rest) = Irssi::command_parse_options('join_msg_new', $data);
-    my $join_Token  = Irssi::settings_get_str('join_api_token');
+    my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
+    my $join_token  = Irssi::settings_get_str('join_api_token');
     
-    if ($join_Args->{url}){
-       $join_Url = uri_escape "$join_Args->{url}";
-       if ($join_Args->{encrypt}) {
-          $join_Url = join_ecrypted($join_Url);
+    if ($join_args->{url}){
+       my $join_url = uri_escape "$join_args->{url}";
+       if ($join_args->{encrypt}) {
+          $join_url = join_ecrypted($join_url);
        }
-       $join_Command = join("", $join_Command, "&url=", $join_Url);
+       $join_Command = join("", $join_Command, "&url=", $join_url);
 
-    } elsif ($join_Rest}) {
-       $join_Text = "$join_Rest";
-       if ($join_Args->{encrypt}) {
-          $join_Text = join_ecrypted($join_Text);
+    } elsif ($join_test}) {
+       my $join_text = "$join_Rest";
+       if ($join_args->{encrypt}) {
+          $join_text = join_ecrypted($join_text);
        }
-       $join_Command = join("", $join_Command, "&text=", "$join_Text");
+       $join_Command = join("", $join_Command, "&text=", "$join_text");
     } else {
        Irssi::print("You need a text or a url");
-    }
     
-    if ($join_Args->{deviceId}){
-        my $join_DeviceId  = $join_Args->{deviceId};
-        $join_Command = join("", $join_Command, "&deviceId=", $join_DeviceId);
+    
+    if ($join_args->{deviceId}){
+        my $join_deviceid  = $join_args->{deviceId};
+        $join_Command = join("", $join_Command, "&deviceId=", $join_deviceid);
         
-     } elsif ($join_Args->{deviceIds}) {
-        my $join_DeviceIds = $join_Args->{deviceIds};
-        $join_Command = join("", $join_Command, "&deviceIds=", $join_DeviceIds);
+     } elsif ($join_args->{deviceIds}) {
+        my $join_deviceids = $join_args->{deviceIds};
+        $join_Command = join("", $join_Command, "&deviceIds=", $join_deviceids);
         
-     } elsif ($join_Args->{deviceNames}) {
-        my $join_DeviceNames = $join_Args->{deviceNames};
-        $join_Command = join("", $join_Command, "&deviceNames=", $join_DeviceNames);
+     } elsif ($join_args->{deviceNames}) {
+        my $join_devicenames = $join_args->{deviceNames};
+        $join_Command = join("", $join_Command, "&deviceNames=", $join_devicenames);
         
      } else {
         Irssi::print("You need deviceId, deviceIds or deviceNames");
-    }
+     }
+}
 
-    if ($join_Args->{title}) {
-        my $join_Title = $join_Args->{title};
-        if ($join_Args->{encrypt}) {
-          $join_Title = join_ecrypted($join_Title);
+    if ($join_args->{title}) {
+        my $join_title = $join_args->{title};
+        if ($join_args->{encrypt}) {
+          $join_title = join_ecrypted($join_title);
         }
-        $join_Command = join("", $join_Command, "&title=", $join_Title);
+        $join_Command = join("", $join_Command, "&title=", $join_title);
     }
 
-    $join_Command = join("", "sendPush?apikey=", $join_Token, $join_Command);
+    $join_Command = join("", "sendPush?apikey=", $join_token, $join_Command);
 
     Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
-    # my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
-    
-    undef $join_Command;
 }
+
 sub join_encrypt {
      my ($text) = @_ ? shift : $_;
      my $encryption_password  = Irssi::settings_get_str('join_encryption_password');
@@ -160,3 +156,5 @@ Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg_new', => 'join_msg_new');
 Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority -encrypt');
 
+# my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
+# undef $join_Command
