@@ -22,7 +22,7 @@ our %IRSSI = (
    );
 
 my $wget_Cmd = "wget --tries=2 --timeout=10 --no-check-certificate -qO- /dev/null";
-my $join_Command;
+my $join_Command = '';
 
 sub cmd_help {
     my ($args) = @_;
@@ -81,15 +81,15 @@ sub join_msg_new {
     my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
     my $join_token  = Irssi::settings_get_str('join_api_token');
     
-    if ($join_args->{url}){
-       my $join_url = uri_escape "$join_args->{url}";
+	if ($join_args->{url}){
+	   my $join_url = uri_escape "$join_args->{url}";
        if ($join_args->{encrypt}) {
           $join_url = join_ecrypted($join_url);
        }
        $join_Command = join("", $join_Command, "&url=", $join_url);
 
-    } elsif ($join_test) {
-       my $join_text = "$join_rest";
+    } elsif ($join_rest) {
+       my $join_text = uri_escape "$join_rest";
        if ($join_args->{encrypt}) {
           $join_text = join_ecrypted($join_text);
        }
@@ -113,7 +113,7 @@ sub join_msg_new {
      } else {
         Irssi::print("You need deviceId, deviceIds or deviceNames");
      }
-}
+
 
     if ($join_args->{title}) {
         my $join_title = $join_args->{title};
@@ -125,7 +125,12 @@ sub join_msg_new {
 
     $join_Command = join("", "sendPush?apikey=", $join_token, $join_Command);
 
+	$join_Command =~ s/%/%%/g; # For printing the correct in IRSSI 
+	
     Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
+	
+	$join_Command  = '';
+	
 }
 
 sub join_encrypt {
