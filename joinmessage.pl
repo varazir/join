@@ -77,7 +77,6 @@ Irssi::signal_stop;
 }
 
 sub join_msg_new {
-    my $join_args;
     my ($data, $server, $item) = @_;    
     my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
     my $join_token  = Irssi::settings_get_str('join_api_token');
@@ -89,15 +88,15 @@ sub join_msg_new {
        }
        $join_Command = join("", $join_Command, "&url=", $join_url);
 
-    } elsif ($join_test}) {
-       my $join_text = "$join_Rest";
+    } elsif ($join_test) {
+       my $join_text = "$join_rest";
        if ($join_args->{encrypt}) {
           $join_text = join_ecrypted($join_text);
        }
        $join_Command = join("", $join_Command, "&text=", "$join_text");
     } else {
        Irssi::print("You need a text or a url");
-    
+    }
     
     if ($join_args->{deviceId}){
         my $join_deviceid  = $join_args->{deviceId};
