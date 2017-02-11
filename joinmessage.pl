@@ -35,8 +35,8 @@ sub cmd_help {
 
 Syntax:
 
-JOIN [-title <text>] [-text <text>] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] 
-     [-url <text>] [-clipboard <text>] [-priority <number>] [-smsnumber <number>] [-smstext <text>] -encrypt
+JOIN [-title <text>] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url <text>] [-clipboard <text>] 
+     [-priority <number>] [-smsnumber <number>] [-smstext <text>] [-encrypt] <text>
 
 Description:
 
@@ -47,7 +47,7 @@ Parameters:
     -title:       If used, will always create a notification on the receiving device with this as the 
                   title and text as the notification’s text
     
-    -text         Text pushed to the device
+    <text>        Text pushed to the device
 
     -deviceid:    The device ID or group ID (must use API Key for groups) of the device you want to 
                   send the message to. It is mandatory that you either set this or the deviceIds parameter.
@@ -158,5 +158,5 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg_new', => 'join_msg_new');
-Irssi::command_set_options('join_msg_new' => '-title +text -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority -encrypt');
+Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority -encrypt');
 
