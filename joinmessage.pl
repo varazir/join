@@ -91,7 +91,7 @@ sub join_msg_new {
     } elsif ($join_rest) {
        my $join_text = uri_escape "$join_rest";
        if ($join_args->{encrypt}) {
-          $join_text = join_ecrypted($join_text);
+          $join_text = join_ecrypted($join_rest);
        }
        $join_Command = join("", $join_Command, "&text=", "$join_text");
     } else {
@@ -127,7 +127,7 @@ sub join_msg_new {
 
 	$join_Command =~ s/%/%%/g; # For printing the correct in IRSSI 
 	
-    Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
+    Irssi::print("joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
 	
 	$join_Command  = '';
 	
@@ -158,7 +158,7 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg_new', => 'join_msg_new');
-Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority -encrypt');
+Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority encrypto');
 
 # my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
 # undef $join_Command
