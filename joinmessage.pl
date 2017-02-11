@@ -86,14 +86,14 @@ sub join_msg_new {
     my $join_Token  = Irssi::settings_get_str('join_api_token');
     
     if ($join_Args->{url}){
-       my $join_Url = uri_escape "$join_Args->{url}";
+       $join_Url = uri_escape "$join_Args->{url}";
        if ($join_Args->{encrypt}) {
           $join_Url = join_ecrypted($join_Url);
        }
        $join_Command = join("", $join_Command, "&url=", $join_Url);
 
     } elsif ($join_Rest}) {
-       my $join_Text = "$join_Rest";
+       $join_Text = "$join_Rest";
        if ($join_Args->{encrypt}) {
           $join_Text = join_ecrypted($join_Text);
        }
@@ -131,7 +131,7 @@ sub join_msg_new {
     Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
     # my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
     
-    undef $join_Command
+    undef $join_Command;
 }
 sub join_encrypt {
      my ($text) = @_ ? shift : $_;
