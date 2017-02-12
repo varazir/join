@@ -32,14 +32,14 @@ Syntax:
 JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url] [-clipboard] 
      [-priority <number>] [-tasker <text>][-smsnumber <number>] [-smstext] [-noencrypt] <text>
 
-Description:
+%U%_Description:%_%U
 
     To send messages using the JOIN API. NO encryption at the moment
 
-Parameters:
+%U%_Parameters:%_%U
 
     -title:       If used, will always create a notification on the receiving device with this as the 
-                  title and text as the notification’s text. it NEED to be "" 
+                  title and text as the notification’s text. %U%_It NEED to be ""%_%U 
     
     <text>        Text pushed to the device
 
@@ -64,12 +64,26 @@ Parameters:
                   lower in the notification list. Values from -2 (lowest priority) to 2 (highest priority). Default is 2.
 
     -smsnumber:   Phone number to send an SMS to. If you want to set an SMS you need to set this and the smstext values
-
+                  %U%_OBS This is sent from your phone and will be charged according to that%_%U
+    
     -smstext:     Some text to send in an SMS. If you want to set an SMS you need to set this and the smsnumber values
 
-    -noencrypt    If you don't like to encrypt the message (Encryption is still not working at the moment, please use this)
+    -noencrypt    If you don't like to encrypt the message 
+                  Encryption is still not working, please use this option at all time
 
-    -tasker:      The command you like to use in tasker before the =:= 
+    -tasker:      The command you like to use in tasker before the =:=
+    
+    
+    %U%_Settings%_%U
+      Please /set join_api_token , join_email and join_encryption_password
+                  
+    %U%_Example%_%U
+      Send text to your device(s) called nexus*
+        /JOIN_MSG -noencrypt -text -deviceNames nexus Hello Phone! How are you today?
+      Send a url to your home computer
+        /JOIN_MSG -noencrypt -url https://google.com -deviceNames home
+      Send SMS over your phone 
+        /JOIN_MSG -noencrypt -smsnumber 5554247 -smstext Hello, the sms was sent from IRC 
 HELP
 ;
 Irssi::signal_stop;
@@ -157,6 +171,11 @@ sub join_msg {
       my $join_priority = "2";
       $join_command = join("", $join_command, "&priority=", $join_priority);
     }
+    
+  if (exists $join_args->{smsnumber}){
+    my $join_smsnumber = $join_args->{smsnumber};
+    $join_command = join("", $join_command, "&smsnumber=", $join_smsnumber);
+  }
    
   # Creating the final command
 
