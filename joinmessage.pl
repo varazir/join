@@ -20,6 +20,7 @@ our %IRSSI = (
     name        => 'joinmessage',
     description => 'To send messages to join API https://joaoapps.com/join/',
     license     => 'GNU GPLv2 or later',
+    changed     => "2017-02-12"
    );
 
 sub cmd_help {
@@ -29,7 +30,7 @@ sub cmd_help {
 
 Syntax:
 
-JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url] [-clipboard] 
+JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url <text>] [-clipboard] 
      [-priority <number>] [-tasker <text>][-smsnumber <number>] [-smstext] [-noencrypt] <text>
 
 %U%_Description:%_%U
