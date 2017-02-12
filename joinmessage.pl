@@ -10,7 +10,7 @@ use Crypt::Mode::CBC;
 use Crypt::PBKDF2; 
 use Crypt::Misc qw(encode_b64); 
 use URI::Escape qw(uri_escape);
-use Mojo::UserAgent
+use Mojo::UserAgent;
 
 our $VERSION = '0.1'; 
 our %IRSSI = (
@@ -27,7 +27,7 @@ my $join_Command = '';
 
 sub cmd_help {
     my ($args) = @_;
-    if ($args =~ /^join_msg_new *$/i) {
+    if ($args =~ /^join_msg *$/i) {
         print CLIENTCRAP <<HELP
 
 Syntax:
@@ -79,23 +79,24 @@ Irssi::signal_stop;
     }
 }
 
-sub join_msg_new {
+sub join_msg {
   my ($data, $server, $item) = @_;    
-  my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
+  my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg', $data);
   my $join_token  = Irssi::settings_get_str('join_api_token');
-  
+  my $join_Command  = '';
+  my $ua  = Mojo::UserAgent->new;
   # Check parameters
   
   if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard}) {
   } else {
-    cmd_help("join_msg_new");
+    cmd_help("join_msg");
     Irssi::print("You need a text, smstext or clipboard");
     return 0;
   }
   
   if (exists $join_args->{deviceId} || exists $join_args->{deviceIds} || exists $join_args->{deviceNames}) {
   } else {
-    cmd_help("join_msg_new");
+    cmd_help("join_msg");
     Irssi::print("You need a deviceId, deviceIds or deviceNames");
     return 0;
   }
@@ -103,7 +104,7 @@ sub join_msg_new {
   if ($join_args->{smsnumber} && exists $join_args->{smstext}) {
   } elsif (exists $join_args->{text} or exists $join_args->{clipboard} ) {
   } else {
-    cmd_help("join_msg_new");
+    cmd_help("join_msg");
     Irssi::print("You need to set both smsnumber and smstext");
     return 0;
   }
@@ -113,7 +114,7 @@ sub join_msg_new {
   foreach my $item ("text", "smstext", "clipboard") {
     if (exists $join_args->{$item}) {
       my $join_text = uri_escape("$join_rest");
-      if (exists $join_args->{tasker} && $item == "text") {
+      if (exists $join_args->{tasker} && $item eq "text") {
         $join_text = join("=:=",$join_args->{tasker}, $join_text);
       }
       if (exists $join_args->{noencrypt}) {
@@ -141,7 +142,6 @@ sub join_msg_new {
       $join_title = join_encrypted($join_title);
     }
     $join_Command = join("", $join_Command, "&title=", $join_title);
-    last;
   }
 
 	if ($join_args->{url}) {
@@ -162,16 +162,18 @@ sub join_msg_new {
       $join_Command = join("", $join_Command, "&priority=", $join_priority);
     }
    
-    # Creating the final command
+  # Creating the final command
 
   $join_Command = join("", "sendPush?apikey=", $join_token, $join_Command);
-
-	$join_Command =~ s/%/%%/g; # For the print to be correct in IRSSI 
-	
-    Irssi::print("joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
-	
-	$join_Command  = '';
-	
+  
+  my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command")->result;
+  
+  if (exists $join_args->{debug}) {
+  	if (exists $join_args->{noencrypt}) {
+      $join_Command =~ s/%/%%/g; # For the print to be correct in IRSSI
+    } 
+    Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
+  }
 }
 
 sub join_encrypted {
@@ -196,8 +198,8 @@ Irssi::settings_add_str('join', 'join_email', '');
 
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
-Irssi::command_bind ('join_msg_new', => 'join_msg_new');
-Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url clipboard @smsnumber smstext priority noencrypt -tasker text');
+Irssi::command_bind ('join_msg', => 'join_msg');
+Irssi::command_set_options('join_msg' => '-title -deviceId -deviceIds -deviceNames -url clipboard @smsnumber smstext priority noencrypt -tasker text debug');
 
 # my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
-
+# my $tx = $ua->get('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command');
