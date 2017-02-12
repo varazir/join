@@ -84,7 +84,29 @@ sub join_msg_new {
   my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
   my $join_token  = Irssi::settings_get_str('join_api_token');
     
-	# Mandatory parameters 
+	# Check parameters
+  
+  if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard}) {
+  } else {
+    cmd_help("join_msg_new");
+    Irssi::print("You need a text, smstext or clipboard");
+    return 0;
+  }
+  if (exists $join_args->{deviceId} || exists $join_args->{deviceIds} || exists $join_args->{deviceNames}) {
+  } else {
+    cmd_help("join_msg_new");
+    Irssi::print("You need a deviceId, deviceIds or deviceNames");
+    return 0;
+  }
+  
+  if ($join_args->{smsnumber} && exists $join_args->{smstext}) {
+  } else {
+    cmd_help("join_msg_new");
+    Irssi::print("You need to set both smsnumber and smstext");
+    return 0;
+  }
+  
+  # Mandatory parameters 
   
   foreach my $item ("text", "smstext", "clipboard") {
     if (exists $join_args->{$item}) {
@@ -108,7 +130,6 @@ sub join_msg_new {
     }
   }
 
-	 
 	# Optional parameters
 
   if ($join_args->{title}) {
@@ -121,14 +142,15 @@ sub join_msg_new {
     }
   }
 
-	if ($join_args->{clipboard}) {
-	  my $join_clipboard = uri_escape($join_args->{clipboard});
-    if (exists $join_args->{encrypt}) {
-      $join_clipboard = join_encrypted($join_args->{clipboard});
+	if ($join_args->{url}) {
+	  my $join_url = uri_escape($join_args->{url});
+    if (exists $join_args->{noencrypt}) {
+      $join_Command = join("", $join_Command, "&url=", $join_url);
+    } else {
+      $join_url = join_encrypted($join_url);
+      $join_Command = join("", $join_Command, "&url=", $join_url);
     }
-    $join_Command = join("", $join_Command, "&clipboard=", $join_clipboard);
-  }
-	
+	}
     # Creating the final command
 
   $join_Command = join("", "sendPush?apikey=", $join_token, $join_Command);
@@ -164,7 +186,7 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg_new', => 'join_msg_new');
-Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority noencrypt tasker text');
+Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard @smsnumber -smstext -priority noencrypt tasker text');
 
 # my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
 
