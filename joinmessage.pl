@@ -74,10 +74,10 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
     -tasker:      The command you like to use in tasker before the =:=
     
     
-    %U%_Settings%_%U
+    %U%_Settings:%_%U
       Please /set join_api_token , join_email and join_encryption_password
                   
-    %U%_Example%_%U
+    %U%_Example:%_%U
       Send text to your device(s) called nexus*
         /JOIN_MSG -noencrypt -text -deviceNames nexus Hello Phone! How are you today?
       Send a url to your home computer
