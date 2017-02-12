@@ -33,7 +33,7 @@ sub cmd_help {
 Syntax:
 
 JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url] [-clipboard] 
-     [-priority <number>] [-smsnumber <number>] [-smstext] [-noencrypt] <text>
+     [-priority <number>] [-tasker <text>][-smsnumber <number>] [-smstext] [-noencrypt] <text>
 
 Description:
 
@@ -71,6 +71,8 @@ Parameters:
     -smstext:     Some text to send in an SMS. If you want to set an SMS you need to set this and the smsnumber values
     
     -noencrypt    If you don't like to encrypt the message (Not working at the moment)
+    
+    -tasker       The command you like to use in tasker before the =:= 
 HELP
 ;
 Irssi::signal_stop;
