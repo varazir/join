@@ -22,9 +22,6 @@ our %IRSSI = (
     license     => 'GNU GPLv2 or later',
    );
 
-my $wget_Cmd = "wget --tries=2 --timeout=10 --no-check-certificate -qO- /dev/null";
-my $join_Command = '';
-
 sub cmd_help {
     my ($args) = @_;
     if ($args =~ /^join_msg *$/i) {
@@ -70,7 +67,7 @@ Parameters:
 
     -smstext:     Some text to send in an SMS. If you want to set an SMS you need to set this and the smsnumber values
 
-    -noencrypt    If you don't like to encrypt the message (Not working at the moment)
+    -noencrypt    If you don't like to encrypt the message (Encryption is still not working at the moment, please use this)
 
     -tasker:      The command you like to use in tasker before the =:= 
 HELP
@@ -83,11 +80,11 @@ sub join_msg {
   my ($data, $server, $item) = @_;    
   my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg', $data);
   my $join_token  = Irssi::settings_get_str('join_api_token');
-  my $join_Command  = '';
+  my $join_command  = '';
   my $ua  = Mojo::UserAgent->new;
   # Check parameters
   
-  if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard}) {
+  if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard} || exists $join_args->{url}) {
   } else {
     cmd_help("join_msg");
     Irssi::print("You need a text, smstext or clipboard");
@@ -102,7 +99,7 @@ sub join_msg {
   }
   
   if ($join_args->{smsnumber} && exists $join_args->{smstext}) {
-  } elsif (exists $join_args->{text} or exists $join_args->{clipboard} ) {
+  } elsif (exists $join_args->{text} or exists $join_args->{clipboard} or exists $join_args->{url} ) {
   } else {
     cmd_help("join_msg");
     Irssi::print("You need to set both smsnumber and smstext");
@@ -121,14 +118,14 @@ sub join_msg {
       } else {
         $join_text = join_encrypted($join_text);
       }
-      $join_Command = join("", $join_Command, "&$item=", $join_text);
+      $join_command = join("", $join_command, "&$item=", $join_text);
       last;
     }
   }
   
   foreach my $device ("deviceId", "deviceIds", "deviceNames") {
     if (exists $join_args->{$device}) {
-      $join_Command = join("", $join_Command, "&$device=", $join_args->{$device});
+      $join_command = join("", $join_command, "&$device=", $join_args->{$device});
       last;
     }
   }
@@ -141,38 +138,37 @@ sub join_msg {
     } else {
       $join_title = join_encrypted($join_title);
     }
-    $join_Command = join("", $join_Command, "&title=", $join_title);
+    $join_command = join("", $join_command, "&title=", $join_title);
   }
 
 	if ($join_args->{url}) {
 	  my $join_url = uri_escape($join_args->{url});
     if (exists $join_args->{noencrypt}) {
-      $join_Command = join("", $join_Command, "&url=", $join_url);
     } else {
       $join_url = join_encrypted($join_url);
-      $join_Command = join("", $join_Command, "&url=", $join_url);
     }
+      $join_command = join("", $join_command, "&url=", $join_url);
 	}
   
   if (exists $join_args->{priority}){
     my $join_priority = $join_args->{priority};
-    $join_Command = join("", $join_Command, "&priority=", $join_priority);
+    $join_command = join("", $join_command, "&priority=", $join_priority);
     } else {
       my $join_priority = "2";
-      $join_Command = join("", $join_Command, "&priority=", $join_priority);
+      $join_command = join("", $join_command, "&priority=", $join_priority);
     }
    
   # Creating the final command
 
-  $join_Command = join("", "sendPush?apikey=", $join_token, $join_Command);
+  $join_command = join("", "sendPush?apikey=", $join_token, $join_command);
   
-  my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command")->result;
+  my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result;
   
   if (exists $join_args->{debug}) {
   	if (exists $join_args->{noencrypt}) {
-      $join_Command =~ s/%/%%/g; # For the print to be correct in IRSSI
+      $join_command =~ s/%/%%/g; # For the print to be correct in IRSSI
     } 
-    Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
+    Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
   }
 }
 
@@ -200,6 +196,3 @@ Irssi::settings_add_str('join', 'join_email', '');
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg', => 'join_msg');
 Irssi::command_set_options('join_msg' => '-title -deviceId -deviceIds -deviceNames -url clipboard @smsnumber smstext priority noencrypt -tasker text debug');
-
-# my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
-# my $tx = $ua->get('https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command');
