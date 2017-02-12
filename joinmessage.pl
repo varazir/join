@@ -84,9 +84,7 @@ sub join_msg_new {
     
 	# Mandatory parameters 
   
-  my @join_parameters = (text, smstext, clipboard);
-	
-  foreach my $item (@join_parameters) {
+  foreach my $item ("text", "smstext", "clipboard") {
     if (exists $join_args->{$item}) {
       my $join_text = uri_escape("$join_rest");
       if (exists $join_args->{tasker} && $item == "text") {
@@ -102,9 +100,7 @@ sub join_msg_new {
     }
   }
   
-  @join_parameters = (deviceId, deviceIds, deviceNames);
-  
-  foreach my $device (@join_parameters) {
+  foreach my $device ("deviceId", "deviceIds", "deviceNames") {
     if (exists $join_args->{$device}) {
       $join_Command = join("", $join_Command, "&$device=", $join_args->{$device});
     }
@@ -166,7 +162,7 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg_new', => 'join_msg_new');
-Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority noencrypt tasker');
+Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority noencrypt tasker text');
 
 # my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
 
