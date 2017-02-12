@@ -9,7 +9,8 @@ use Data::Random qw(rand_chars);
 use Crypt::Mode::CBC; 
 use Crypt::PBKDF2; 
 use Crypt::Misc qw(encode_b64); 
-use URI::Escape qw(uri_escape); 
+use URI::Escape qw(uri_escape);
+# use Mojo::UserAgent
 
 our $VERSION = '0.1'; 
 our %IRSSI = (
@@ -31,8 +32,8 @@ sub cmd_help {
 
 Syntax:
 
-JOIN [-title <text>] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url <text>] [-clipboard <text>] 
-     [-priority <number>] [-smsnumber <number>] [-smstext <text>] [-encrypt] <text>
+JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url] [-clipboard] 
+     [-priority <number>] [-smsnumber <number>] [-smstext] [-noencrypt] <text>
 
 Description:
 
@@ -41,7 +42,7 @@ Description:
 Parameters:
 
     -title:       If used, will always create a notification on the receiving device with this as the 
-                  title and text as the notification’s text
+                  title and text as the notification’s text. it NEED to be "" 
     
     <text>        Text pushed to the device
 
@@ -69,7 +70,7 @@ Parameters:
 
     -smstext:     Some text to send in an SMS. If you want to set an SMS you need to set this and the smsnumber values
     
-    -encrypt      If you like to encrypt the message
+    -noencrypt    If you don't like to encrypt the message (Not working at the moment)
 HELP
 ;
 Irssi::signal_stop;
@@ -77,55 +78,64 @@ Irssi::signal_stop;
 }
 
 sub join_msg_new {
-    my ($data, $server, $item) = @_;    
-    my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
-    my $join_token  = Irssi::settings_get_str('join_api_token');
+  my ($data, $server, $item) = @_;    
+  my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
+  my $join_token  = Irssi::settings_get_str('join_api_token');
     
-	if ($join_args->{url}){
-	   my $join_url = uri_escape "$join_args->{url}";
-       if ($join_args->{encrypt}) {
-          $join_url = join_ecrypted($join_url);
-       }
-       $join_Command = join("", $join_Command, "&url=", $join_url);
+	# Mandatory parameters 
+  
+  my @join_parameters = (text, smstext, clipboard);
+	
+  foreach my $item (@join_parameters) {
+    if (exists $join_args->{$item}) {
+      my $join_text = uri_escape("$join_rest");
+      if (exists $join_args->{tasker} && $item == "text") {
+        $join_text = join("=:=",$join_args->{tasker}, $join_text);
+      }
+      if (exists $join_args->{noencrypt}) {
+        $join_Command = join("", $join_Command, "&$item=", $join_text);
+      } else {
+        $join_text = join_encrypted($join_text);
+        $join_Command = join("", $join_Command, "&$item=", $join_text);
+      }
+      last;
+    }
+  }
+  
+  @join_parameters = (deviceId, deviceIds, deviceNames);
+  
+  foreach my $device (@join_parameters) {
+    if (exists $join_args->{$device}) {
+      $join_Command = join("", $join_Command, "&$device=", $join_args->{$device});
+    }
+  }
 
-    } elsif ($join_rest) {
-       my $join_text = uri_escape "$join_rest";
-       if ($join_args->{encrypt}) {
-          $join_text = join_ecrypted($join_rest);
-       }
-       $join_Command = join("", $join_Command, "&text=", "$join_text");
+	 
+	# Optional parameters
+
+  if ($join_args->{title}) {
+    my $join_title = uri_escape($join_args->{title});
+    if (exists $join_args->{noencrypt}) {
+      $join_Command = join("", $join_Command, "&title=", $join_title);
     } else {
-       Irssi::print("You need a text or a url");
+      $join_title = join_encrypted($join_args->{title});
+      $join_Command = join("", $join_Command, "&title=", $join_title);
     }
-    
-    if ($join_args->{deviceId}){
-        my $join_deviceid  = $join_args->{deviceId};
-        $join_Command = join("", $join_Command, "&deviceId=", $join_deviceid);
-        
-     } elsif ($join_args->{deviceIds}) {
-        my $join_deviceids = $join_args->{deviceIds};
-        $join_Command = join("", $join_Command, "&deviceIds=", $join_deviceids);
-        
-     } elsif ($join_args->{deviceNames}) {
-        my $join_devicenames = $join_args->{deviceNames};
-        $join_Command = join("", $join_Command, "&deviceNames=", $join_devicenames);
-        
-     } else {
-        Irssi::print("You need deviceId, deviceIds or deviceNames");
-     }
+  }
 
-
-    if ($join_args->{title}) {
-        my $join_title = $join_args->{title};
-        if ($join_args->{encrypt}) {
-          $join_title = join_ecrypted($join_title);
-        }
-        $join_Command = join("", $join_Command, "&title=", $join_title);
+	if ($join_args->{clipboard}) {
+	  my $join_clipboard = uri_escape($join_args->{clipboard});
+    if (exists $join_args->{encrypt}) {
+      $join_clipboard = join_encrypted($join_args->{clipboard});
     }
+    $join_Command = join("", $join_Command, "&clipboard=", $join_clipboard);
+  }
+	
+    # Creating the final command
 
-    $join_Command = join("", "sendPush?apikey=", $join_token, $join_Command);
+  $join_Command = join("", "sendPush?apikey=", $join_token, $join_Command);
 
-	$join_Command =~ s/%/%%/g; # For printing the correct in IRSSI 
+	$join_Command =~ s/%/%%/g; # For the print to be correct in IRSSI 
 	
     Irssi::print("joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_Command");
 	
@@ -133,7 +143,7 @@ sub join_msg_new {
 	
 }
 
-sub join_encrypt {
+sub join_encrypted {
      my ($text) = @_ ? shift : $_;
      my $encryption_password  = Irssi::settings_get_str('join_encryption_password');
      my $iterationcount = 5000;
@@ -147,8 +157,6 @@ sub join_encrypt {
  
 }
      
-#    $join_Url =~ s/%/%%/g;   USED for displaying the url correct in irssi 
-
 # Settings
 
 Irssi::settings_add_str('join', 'join_api_token', '');
@@ -158,7 +166,7 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg_new', => 'join_msg_new');
-Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority encrypto');
+Irssi::command_set_options('join_msg_new' => '-title -deviceId -deviceIds -deviceNames -url -clipboard -smsnumber -smstext -priority noencrypt tasker');
 
 # my $wget = `$wget_Cmd "https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/sendPush$join_Command"`;
-# undef $join_Command
+
