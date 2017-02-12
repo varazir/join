@@ -71,7 +71,7 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
     -noencrypt    If you don't like to encrypt the message 
                   Encryption is still not working, please use this option at all time
 
-    -tasker:      The command you like to use in tasker before the =:=
+    -tasker:      The command you use in a tasker profile (before the =:=)
     
     
     %U%_Settings:%_%U
@@ -79,11 +79,13 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
                   
     %U%_Example:%_%U
       Send text to your device(s) called nexus*
-        /JOIN_MSG -noencrypt -text -deviceNames nexus Hello Phone! How are you today?
+        /JOIN_MSG -noencrypt -title "To my Phone" -text -deviceNames nexus Hello Phone! How are you today?
       Send a url to your home computer
         /JOIN_MSG -noencrypt -url https://google.com -deviceNames home
       Send SMS over your phone 
-        /JOIN_MSG -noencrypt -smsnumber 5554247 -smstext Hello, the sms was sent from IRC 
+        /JOIN_MSG -noencrypt -smsnumber 5554247 -smstext Hello, the sms was sent from IRC
+      Send command to tasker, a tasker profile listening to in this 'irssi=:=' need to be setup on your phone for this to work.
+        /JOIN_MSG -noencrypt -tasker irssi -text -deviceNames nexus I command my phone to lock.
 HELP
 ;
 Irssi::signal_stop;
