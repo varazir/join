@@ -10,7 +10,7 @@ use Crypt::Mode::CBC;
 use Crypt::PBKDF2; 
 use Crypt::Misc qw(encode_b64); 
 use URI::Escape qw(uri_escape);
-# use Mojo::UserAgent
+use Mojo::UserAgent
 
 our $VERSION = '0.1'; 
 our %IRSSI = (
@@ -84,7 +84,7 @@ sub join_msg_new {
   my ($join_args, $join_rest) = Irssi::command_parse_options('join_msg_new', $data);
   my $join_token  = Irssi::settings_get_str('join_api_token');
   
-	# Check parameters
+  # Check parameters
   
   if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard}) {
   } else {
