@@ -9,8 +9,8 @@ Description:
 
 Parameters:
 
-    -title:       If used, will always create a notification on the receiving device with this as the 
-                  title and text as the notification’s text. %U%_It NEED to be ""%_%U 
+    -title:       If used, will always create a notification on the areceiving device with this as the 
+                  title and text as the notification’s text. It NEED to be ""
     
     <text>        Text pushed to the device
 
@@ -35,7 +35,7 @@ Parameters:
                   lower in the notification list. Values from -2 (lowest priority) to 2 (highest priority). Default is 2.
 
     -smsnumber:   Phone number to send an SMS to. If you want to set an SMS you need to set this and the smstext values
-                  %U%_OBS This is sent from your phone and will be charged according to that%_%U
+                  OBS This is sent from your phone and will be charged according to that.
     
     -smstext:     Some text to send in an SMS. If you want to set an SMS you need to set this and the smsnumber values
 

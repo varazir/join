@@ -206,7 +206,9 @@ sub join_encrypted {
      my $cipher = Crypt::Mode::CBC->new('AES')->encrypt($text, $key, $bytes);
      my $encrypted = join("=:=",encode_b64($bytes), encode_b64($cipher));
  
- return $encrypted;
+     Irssi::print("encryption is not working at the moment, please add -noencrypt");
+      
+     return $encrypted;
  
 }
      
