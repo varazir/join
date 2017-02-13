@@ -103,29 +103,42 @@ sub join_msg {
   my $ua  = Mojo::UserAgent->new;
   # Check parameters
   
-  ref $join_args or return 0;  
-  
-  if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard} || exists $join_args->{url} && $join_rest) {
-  } else {
-    cmd_help("join_msg");
-    Irssi::print("You need a text, smstext or clipboard");
-    return 0;
+  ref $join_args or return;
+
+  if (!@{$join_args}{qw[deviceId deviceIds deviceNames]}) {
+    Irssi::print("You need use one of this deviceId, deviceIds or deviceNames");
+  }
+
+  if (@{$join_args}{qw[clipboard smstext text]} && !length $join_rest) { 
+    Irssi::print "You need to specify a text";
   }
   
-  if ($join_args->{deviceId} || $join_args->{deviceIds} || $join_args->{deviceNames}) {
-  } else {
-    cmd_help("join_msg");
-    Irssi::print("You need a deviceId, deviceIds or deviceNames");
-    return 0;
+  if(exists $join_args->{smstext} && !$join_args->{smsnumber}) {  
+    Irssi::print("You are missing SMStext or SMSnumber");
   }
   
-  if ($join_args->{smsnumber} && exists $join_args->{smstext}) {
-  } elsif (exists $join_args->{text} or exists $join_args->{clipboard} or exists $join_args->{url} ) {
-  } else {
-    cmd_help("join_msg");
-    Irssi::print("You need to set both smsnumber and smstext");
-    return 0;
-  }
+  
+  #if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard} || exists $join_args->{url} && $join_rest) {
+  #} else {
+  #  cmd_help("join_msg");
+  #  Irssi::print("You need a text, smstext or clipboard");
+  #  return 0;
+  #}
+  
+  #if ($join_args->{deviceId} || $join_args->{deviceIds} || $join_args->{deviceNames}) {
+  #} else {
+  #  cmd_help("join_msg");
+  #  Irssi::print("You need a deviceId, deviceIds or deviceNames");
+  #  return 0;
+  #}
+  
+  #if ($join_args->{smsnumber} && exists $join_args->{smstext}) {
+  #} elsif (exists $join_args->{text} or exists $join_args->{clipboard} or exists $join_args->{url} ) {
+  #} else {
+  #  cmd_help("join_msg");
+  #  Irssi::print("You need to set both smsnumber and smstext");
+  #  return 0;
+  #}
   
   # Mandatory parameters 
   
