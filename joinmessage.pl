@@ -57,7 +57,7 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
     -url:         A URL you want to open on the device. If a notification is created with this push, this 
                   will make clicking the notification open this URL.
 
-    -clipboard:   Some text you want to set on the receiving device’s clipboard. If the device is an Android 
+    -clipboard:   Some <text> you want to set on the receiving device’s clipboard. If the device is an Android 
                   device and the Join accessibility service is enabled the text will be pasted right away in 
                   the app that’s currently opened.
 
@@ -103,14 +103,16 @@ sub join_msg {
   my $ua  = Mojo::UserAgent->new;
   # Check parameters
   
-  if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard} || exists $join_args->{url}) {
+  ref $join_args or return 0;  
+  
+  if (exists $join_args->{text} || exists $join_args->{smstext} || exists $join_args->{clipboard} || exists $join_args->{url} && $join_rest) {
   } else {
     cmd_help("join_msg");
     Irssi::print("You need a text, smstext or clipboard");
     return 0;
   }
   
-  if (exists $join_args->{deviceId} || exists $join_args->{deviceIds} || exists $join_args->{deviceNames}) {
+  if ($join_args->{deviceId} || $join_args->{deviceIds} || $join_args->{deviceNames}) {
   } else {
     cmd_help("join_msg");
     Irssi::print("You need a deviceId, deviceIds or deviceNames");
@@ -221,4 +223,4 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg', => 'join_msg');
-Irssi::command_set_options('join_msg' => '-title -deviceId -deviceIds -deviceNames -url clipboard @smsnumber smstext priority noencrypt -tasker text debug');
+Irssi::command_set_options('join_msg' => '+title +deviceId +deviceIds +deviceNames +url clipboard @smsnumber smstext priority noencrypt +tasker text debug');
