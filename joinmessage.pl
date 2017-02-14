@@ -235,4 +235,4 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg', => 'join_msg');
-Irssi::command_set_options('join_msg' => '+title +deviceId +deviceIds +deviceNames +url clipboard +smsnumber smstext priority noencrypt +tasker text debug');
+Irssi::command_set_options('join_msg' => '+title +deviceId +deviceIds +deviceNames +url clipboard +smsnumber smstext +priority noencrypt +tasker text debug');
