@@ -120,6 +120,9 @@ sub join_msg {
     
     print "priority title tasker";
     print Dumper(@{$join_args}{qw[priority title tasker]});
+    
+    print "join_rest";
+    print Dumper($join_rest);
   }
     
   if (!@{$join_args}{qw[deviceId deviceIds deviceNames]}) {
@@ -132,10 +135,10 @@ sub join_msg {
      return 0;
   }
   
-  if(exists $join_args->{smstext} && !$join_args->{smsnumber}) {  
+  if(@{$join_args}{qw[smstext]} && !$join_args->{smsnumber}) {  
      Irssi::print("You are missing SMSnumber");
      return 0;
-  } elsif ($join_args->{smsnumber} && !exists $join_args->{smstext}) {
+  } elsif ($join_args->{smsnumber} && !@{$join_args}{qw[smstext]}) {
      Irssi::print("You are missing SMStext");
      return 0;
   }
@@ -143,7 +146,7 @@ sub join_msg {
   # Mandatory parameters 
   
   foreach my $item ("text", "smstext", "clipboard") {
-    if (exists $join_args->{$item}) {
+    if (@{$join_args}{qw[$item]}) {
       my $join_text = uri_escape("$join_rest");
       if (exists $join_args->{tasker} && $item eq "text") {
         $join_text = join("=:=",$join_args->{tasker}, $join_text);
