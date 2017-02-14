@@ -106,13 +106,28 @@ sub join_msg {
   # Check parameters
   
   ref $join_args or return;
-  
+
+  if(exists $join_args->{debug}) { 
+    use Data::Dumper;
+    print "clipboard smstext text";
+    print Dumper(@{$join_args}{qw[clipboard smstext text]});
+    
+    print "deviceId deviceIds deviceNames";
+    print Dumper(@{$join_args}{qw[deviceId deviceIds deviceNames]});
+    
+    print "smstext smsnumber url";
+    print Dumper(@{$join_args}{qw[smstext smsnumber url]});
+    
+    print "priority title tasker";
+    print Dumper(@{$join_args}{qw[priority title tasker]});
+  }
+    
   if (!@{$join_args}{qw[deviceId deviceIds deviceNames]}) {
     Irssi::print("You need use one of this deviceId, deviceIds or deviceNames");
     return 0;
   }
 
-  if (!@{$join_args}{qw[clipboard smstext text]} && !length $join_rest) {
+  if (@{$join_args}{qw[clipboard smstext text]} && !length $join_rest) {
      Irssi::print "You need to specify a text";
      return 0;
   }
@@ -120,16 +135,11 @@ sub join_msg {
   if(exists $join_args->{smstext} && !$join_args->{smsnumber}) {  
      Irssi::print("You are missing SMSnumber");
      return 0;
-  } elsif ($join_args->{smsnumber} && !$join_args->{smstext}) {
+  } elsif ($join_args->{smsnumber} && !exists $join_args->{smstext}) {
      Irssi::print("You are missing SMStext");
      return 0;
   }
 
-  if(exists $join_args->{debug}) { 
-    use Data::Dumper;
-    print Dumper(@{$join_args}{qw[clipboard smstext text]});
-  }
-  
   # Mandatory parameters 
   
   foreach my $item ("text", "smstext", "clipboard") {
