@@ -117,6 +117,13 @@ sub join_msg {
      return 0;
   }
   
+  if (exists $join_args->{clipboard} || exists $join_args->{smstext} || exists $join_args->{text}) {
+  } else {
+   Irssi::print "You need to specify clipboard, smstext or text";
+   return 0;
+  }
+  
+  
   if(exists $join_args->{smstext} && !$join_args->{smsnumber}) {  
      Irssi::print("You are missing SMSnumber");
      return 0;
