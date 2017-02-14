@@ -109,18 +109,8 @@ sub join_msg {
 
   if(exists $join_args->{debug}) { 
     use Data::Dumper;
-    print "clipboard smstext text";
-    print Dumper(@{$join_args}{qw[clipboard smstext text]});
-    
-    print "deviceId deviceIds deviceNames";
-    print Dumper(@{$join_args}{qw[deviceId deviceIds deviceNames]});
-    
-    print "smstext smsnumber url";
-    print Dumper(@{$join_args}{qw[smstext smsnumber url]});
-    
-    print "priority title tasker";
-    print Dumper(@{$join_args}{qw[priority title tasker]});
-    
+    print "join_args";
+    print Dumper($join_args);
     print "join_rest";
     print Dumper($join_rest);
   }
@@ -130,9 +120,11 @@ sub join_msg {
     return 0;
   }
 
-  if (@{$join_args}{qw[clipboard smstext text]} && !length $join_rest) {
+  if (!@{$join_args}{qw[clipboard smstext text]}) { 
+     if (!length $join_rest) {
      Irssi::print "You need to specify a text";
      return 0;
+     }
   }
   
   if(@{$join_args}{qw[smstext]} && !$join_args->{smsnumber}) {  
