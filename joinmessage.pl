@@ -122,7 +122,7 @@ sub join_msg {
   }
 
 
-  if (any { exists $join_args->{$_} } qw[clipboard smstext text] && !length $join_rest) {
+  if (any { exists $join_args->{$_} } qw[clipboard smstext text] and !length $join_rest) {
     Irssi::print "You need to specify a text";
     return 0;
    }
