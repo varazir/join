@@ -12,6 +12,8 @@ use Crypt::Misc qw(encode_b64);
 use URI::Escape qw(uri_escape);
 use Mojo::UserAgent;
 use OpenCA::PKCS7;
+use List::Util 'all';
+use List::Util 'any';
 
 our $VERSION = '0.1'; 
 our %IRSSI = (
@@ -114,17 +116,16 @@ sub join_msg {
     print "join_rest";
     print Dumper($join_rest);
   }
-    
-  if (!defined @{$join_args}{qw[deviceId deviceIds deviceNames]}) {
+  if (all { !exists $join_args->{$_} } qw[deviceId deviceIds deviceNames]) {
     Irssi::print("You need use one of this deviceId, deviceIds or deviceNames");
     return 0;
   }
 
-  if (defined @{$join_args}{qw[clipboard smstext text]} && !length $join_rest) {
-     Irssi::print "You need to specify a text";
-     return 0;
-     }
-  }
+
+  if (all { !exists $join_args->{$_} } qw[clipboard smstext text] && !length $join_rest) {
+    Irssi::print "You need to specify a text";
+    return 0;
+   }
   
   if(defined $join_args->{smstext} && !$join_args->{smsnumber}) {  
      Irssi::print("You are missing SMSnumber");
@@ -133,6 +134,8 @@ sub join_msg {
      Irssi::print("You are missing SMStext");
      return 0;
   }
+  
+  return 0;
 
   # Mandatory parameters 
   
