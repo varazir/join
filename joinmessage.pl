@@ -15,7 +15,7 @@ use OpenCA::PKCS7;
 use List::Util 'all';
 use List::Util 'any';
 
-our $VERSION = '0.1'; 
+our $VERSION = '0.5'; 
 our %IRSSI = (
     authors     => 'Varazir',
     contact     => 'Varazir',
@@ -53,7 +53,7 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
     -deviceids:   A comma separated list of device IDs you want to send the push to. It is mandatory 
                   that you either set this or the deviceId parameter.
 
-    -deviceNames: a comma separated list of device names you want to send the push to. It can be parcial 
+    -devicenames: a comma separated list of device names you want to send the push to. It can be parcial 
                   names. For example, if you set deviceNames to  Nexus,PC it’ll send it to devices called 
                   Nexus 5, Nexus 6, Home PC and Work PC if you have devices named that way. *Must be used with the API key to work!*
 
@@ -66,6 +66,7 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
 
     -priority:    Control how your notification is displayed: lower priority notifications are usually displayed 
                   lower in the notification list. Values from -2 (lowest priority) to 2 (highest priority). Default is 2.
+                  Negative value need to ""
 
     -smsnumber:   Phone number to send an SMS to. If you want to set an SMS you need to set this and the smstext values
                   %U%_OBS This is sent from your phone and will be charged according to that%_%U
@@ -117,7 +118,7 @@ sub join_msg {
     print Dumper($join_rest);
   }
   if (all { !exists $join_args->{$_} } qw[deviceId deviceIds deviceNames]) {
-    Irssi::print("You need use one of this deviceId, deviceIds or deviceNames");
+    Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames");
     return 0;
   }
 
@@ -127,25 +128,23 @@ sub join_msg {
     return 0;
    }
   
-  if(defined $join_args->{smstext} && !$join_args->{smsnumber}) {  
+  if(exists $join_args->{smstext} && !$join_args->{smsnumber}) {  
      Irssi::print("You are missing SMSnumber");
      return 0;
-  } elsif ($join_args->{smsnumber} && !defined $join_args->{smstext}) {
+  } elsif ($join_args->{smsnumber} && !exists $join_args->{smstext}) {
      Irssi::print("You are missing SMStext");
      return 0;
   }
   
-  return 0;
-
   # Mandatory parameters 
   
   foreach my $item ("text", "smstext", "clipboard") {
-    if (defined $join_args->{$item}) {
+    if (exists $join_args->{$item}) {
       my $join_text = uri_escape("$join_rest");
-      if (defined $join_args->{tasker} && $item eq "text") {
+      if ($join_args->{tasker} && $item eq "text") {
         $join_text = join("=:=",$join_args->{tasker}, $join_text);
       }
-      if (!defined $join_args->{noencrypt}) {
+      if (!exists $join_args->{noencrypt}) {
         $join_text = join_encrypted($join_text);
       }
       $join_command = join("", $join_command, "&$item=", $join_text);
@@ -154,7 +153,7 @@ sub join_msg {
   }
   
   foreach my $device ("deviceId", "deviceIds", "deviceNames") {
-    if (defined $join_args->{$device}) {
+    if (exists $join_args->{$device}) {
       $join_command = join("", $join_command, "&$device=", $join_args->{$device});
       last;
     }
@@ -164,7 +163,7 @@ sub join_msg {
 
   if ($join_args->{title}) {
     my $join_title = uri_escape($join_args->{title});
-    if (!defined $join_args->{noencrypt}) {
+    if (!exists $join_args->{noencrypt}) {
      $join_title = join_encrypted($join_title);
     }
     $join_command = join("", $join_command, "&title=", $join_title);
@@ -172,7 +171,7 @@ sub join_msg {
 
     if ($join_args->{url}) {
       my $join_url = uri_escape($join_args->{url});
-      if (!defined $join_args->{noencrypt}) {
+      if (!exists $join_args->{noencrypt}) {
         $join_url = join_encrypted($join_url);
       }
       $join_command = join("", $join_command, "&url=", $join_url);
@@ -194,8 +193,6 @@ sub join_msg {
   # Creating the final command
 
   $join_command = join("", "sendPush?apikey=", $join_token, $join_command);
-  
-  # my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result;
   
   if (defined $join_args->{debug}) {
     if (defined $join_args->{noencrypt}) {
