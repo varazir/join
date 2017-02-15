@@ -105,7 +105,7 @@ sub join_msg {
   my $ua  = Mojo::UserAgent->new;
   # Check parameters
   
-  ref $join_args or return;
+  ref $join_args or return 0;
 
   if(exists $join_args->{debug}) { 
     use Data::Dumper;
@@ -115,22 +115,21 @@ sub join_msg {
     print Dumper($join_rest);
   }
     
-  if (!@{$join_args}{qw[deviceId deviceIds deviceNames]}) {
+  if (!defined @{$join_args}{qw[deviceId deviceIds deviceNames]}) {
     Irssi::print("You need use one of this deviceId, deviceIds or deviceNames");
     return 0;
   }
 
-  if (!@{$join_args}{qw[clipboard smstext text]}) { 
-     if (!length $join_rest) {
+  if (defined @{$join_args}{qw[clipboard smstext text]} && !length $join_rest) {
      Irssi::print "You need to specify a text";
      return 0;
      }
   }
   
-  if(@{$join_args}{qw[smstext]} && !$join_args->{smsnumber}) {  
+  if(defined $join_args->{smstext} && !$join_args->{smsnumber}) {  
      Irssi::print("You are missing SMSnumber");
      return 0;
-  } elsif ($join_args->{smsnumber} && !@{$join_args}{qw[smstext]}) {
+  } elsif ($join_args->{smsnumber} && !defined $join_args->{smstext}) {
      Irssi::print("You are missing SMStext");
      return 0;
   }
@@ -138,13 +137,12 @@ sub join_msg {
   # Mandatory parameters 
   
   foreach my $item ("text", "smstext", "clipboard") {
-    if (@{$join_args}{qw[$item]}) {
+    if (defined $join_args->{$item}) {
       my $join_text = uri_escape("$join_rest");
-      if (exists $join_args->{tasker} && $item eq "text") {
+      if (defined $join_args->{tasker} && $item eq "text") {
         $join_text = join("=:=",$join_args->{tasker}, $join_text);
       }
-      if (exists $join_args->{noencrypt}) {
-      } else {
+      if (!defined $join_args->{noencrypt}) {
         $join_text = join_encrypted($join_text);
       }
       $join_command = join("", $join_command, "&$item=", $join_text);
@@ -153,7 +151,7 @@ sub join_msg {
   }
   
   foreach my $device ("deviceId", "deviceIds", "deviceNames") {
-    if (exists $join_args->{$device}) {
+    if (defined $join_args->{$device}) {
       $join_command = join("", $join_command, "&$device=", $join_args->{$device});
       last;
     }
@@ -163,23 +161,21 @@ sub join_msg {
 
   if ($join_args->{title}) {
     my $join_title = uri_escape($join_args->{title});
-    if (exists $join_args->{noencrypt}) {
-    } else {
-      $join_title = join_encrypted($join_title);
+    if (!defined $join_args->{noencrypt}) {
+     $join_title = join_encrypted($join_title);
     }
     $join_command = join("", $join_command, "&title=", $join_title);
   }
 
     if ($join_args->{url}) {
       my $join_url = uri_escape($join_args->{url});
-    if (exists $join_args->{noencrypt}) {
-    } else {
-      $join_url = join_encrypted($join_url);
-    }
+      if (!defined $join_args->{noencrypt}) {
+        $join_url = join_encrypted($join_url);
+      }
       $join_command = join("", $join_command, "&url=", $join_url);
-	}
+    }
   
-  if (exists $join_args->{priority}){
+  if ($join_args->{priority}){
     my $join_priority = $join_args->{priority};
     $join_command = join("", $join_command, "&priority=", $join_priority);
     } else {
@@ -187,7 +183,7 @@ sub join_msg {
       $join_command = join("", $join_command, "&priority=", $join_priority);
     }
     
-  if (exists $join_args->{smsnumber}){
+  if ($join_args->{smsnumber}){
     my $join_smsnumber = $join_args->{smsnumber};
     $join_command = join("", $join_command, "&smsnumber=", $join_smsnumber);
   }
@@ -198,8 +194,8 @@ sub join_msg {
   
   # my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result;
   
-  if (exists $join_args->{debug}) {
-    if (exists $join_args->{noencrypt}) {
+  if (defined $join_args->{debug}) {
+    if (defined $join_args->{noencrypt}) {
      $join_command =~ s/%/%%/g; # For the print to be correct in IRSSI
     } 
     Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
