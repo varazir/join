@@ -11,9 +11,12 @@ use Crypt::PBKDF2;
 use Crypt::Misc qw(encode_b64); 
 use URI::Escape qw(uri_escape);
 use Mojo::UserAgent;
-use OpenCA::PKCS7;
-use List::Util 'all';
-use List::Util 'any';
+use JSON::MaybeXS;
+# use OpenCA::PKCS7;
+use List::Util qw(all any);
+#use List::Util 'any';
+#use Mojo::JSON qw(decode_json);
+#use JSON::MaybeXS qw(decode_json);
 
 our $VERSION = '0.5'; 
 our %IRSSI = (
@@ -136,6 +139,11 @@ sub join_msg {
      return 0;
   }
   
+  if (!exists $join_args->{noencrypt} && $VERSION < 1 ){
+    Irssi::print("encryption is not working at the moment, please add -noencrypt");
+    return 0;
+  }
+  
   # Mandatory parameters 
   
   foreach my $item ("text", "smstext", "clipboard") {
@@ -178,7 +186,7 @@ sub join_msg {
     }
   
   if ($join_args->{priority}){
-    my $join_priority = $join_args->{priority};
+    my $join_priority = uri_escape($join_args->{priority});
     $join_command = join("", $join_command, "&priority=", $join_priority);
     } else {
       my $join_priority = "2";
@@ -199,10 +207,12 @@ sub join_msg {
      $join_command =~ s/%/%%/g; # For the print to be correct in IRSSI
     } 
     Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
-  } else {
-     my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result;
+    } else {
+     my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
+#     my $json = decode_json($tx);
+#     Irssi::print(Dumper $tx);
+    }
   }
-}
 
 sub join_encrypted {
      my ($text) = @_ ? shift : $_;
@@ -214,7 +224,7 @@ sub join_encrypted {
      my $cipher = Crypt::Mode::CBC->new('AES')->encrypt($text, $key, $bytes);
      my $encrypted = join("=:=",encode_b64($bytes), encode_b64($cipher));
  
-     Irssi::print("encryption is not working at the moment, please add -noencrypt");
+     # Irssi::print("encryption is not working at the moment, please add -noencrypt");
       
      return $encrypted;
  
