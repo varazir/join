@@ -11,12 +11,9 @@ use Crypt::PBKDF2;
 use Crypt::Misc qw(encode_b64); 
 use URI::Escape qw(uri_escape);
 use Mojo;
-use JSON::MaybeXS;
 # use OpenCA::PKCS7;
 use List::Util qw(all any);
-#use List::Util 'any';
 #use Mojo::JSON qw(decode_json);
-#use JSON::MaybeXS qw(decode_json);
 
 our $VERSION = '0.5'; 
 our %IRSSI = (
