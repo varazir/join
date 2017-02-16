@@ -93,8 +93,8 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
       Send SMS over your phone 
         /JOIN_MSG -noencrypt -smsnumber 5554247 -smstext Hello, the sms was sent from IRC
       Send command to tasker, a tasker profile listening to in this 'irssi=:=' need to be setup on your phone for this to work.
-        /JOIN_MSG -noencrypt -tasker irssi -text -deviceNames nexus I command my phone to lock.
-      Set the clipboard on your computer or paste the text on your phone
+        /JOIN_MSG -noencrypt -tasker irssi -text -deviceNames nexus I command my phone to do something.
+      Set the clipboard on your computer or paste the text on your phone.
         /JOIN_MSG -noencrypt -clipboard -deviceNames nexus This is text that will be typed in the activ windows on my phone
 HELP
 ;
@@ -227,10 +227,7 @@ sub join_encrypted {
      my $cipher = Crypt::Mode::CBC->new('AES')->encrypt($text, $key, $bytes);
      my $encrypted = join("=:=",encode_b64($bytes), encode_b64($cipher));
  
-     # Irssi::print("encryption is not working at the moment, please add -noencrypt");
-      
      return $encrypted;
- 
 }
      
 # Settings
