@@ -10,7 +10,7 @@ use Crypt::Mode::CBC;
 use Crypt::PBKDF2; 
 use Crypt::Misc qw(encode_b64); 
 use URI::Escape qw(uri_escape);
-use Mojo::UserAgent;
+use Mojo;
 use JSON::MaybeXS;
 # use OpenCA::PKCS7;
 use List::Util qw(all any);
@@ -208,9 +208,12 @@ sub join_msg {
     } 
     Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
     } else {
-     my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
-#     my $json = decode_json($tx);
-#     Irssi::print(Dumper $tx);
+      my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
+      if ($tx->{success} eq "true") {
+      Irssi::print("Message sent successfully");
+      } else {
+        Irssi::print($tx->{errorMessage});
+      }
     }
   }
 
