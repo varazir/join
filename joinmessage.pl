@@ -120,16 +120,25 @@ sub join_msg {
     print "join_rest";
     print Dumper($join_rest);
   }
-  if (all { !exists $join_args->{$_} } qw[deviceId deviceIds deviceNames]) {
-    Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames");
+  if (all { !exists $join_args->{$_} or !length $join_args->{$_}} qw[deviceId deviceIds deviceNames]) {
+    Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames and a value" );
     return 0;
   }
 
+  if (all { !exists $join_args->{$_}} qw[clipboard smstext text url ]) {
+    Irssi::print("You need to use one of this -clipboard, -smstext, -text or -url" );
+    return 0;
+  }
 
   if (any { exists $join_args->{$_} } qw[clipboard smstext text] and !length $join_rest) {
-    Irssi::print "You need to specify a text";
+    Irssi::print("You need to specify a text");
     return 0;
    }
+
+  if (exists $join_args->{url} and !length $join_args->{url}) {
+    Irssi::print("You need specify a url");
+    return 0;
+  }
   
   if(exists $join_args->{smstext} && !$join_args->{smsnumber}) {  
      Irssi::print("You are missing SMSnumber");
