@@ -13,7 +13,6 @@ use URI::Escape qw(uri_escape);
 use Mojo;
 # use OpenCA::PKCS7;
 use List::Util qw(all any);
-#use Mojo::JSON qw(decode_json);
 
 our $VERSION = '0.5'; 
 our %IRSSI = (
@@ -111,12 +110,16 @@ sub join_msg {
   my $join_command  = '';
   my $join_text;
   my $ua  = Mojo::UserAgent->new;
-# my $devicelist = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices?apikey=$join_token")->result->json;
+  my $devicelist = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices?apikey=$join_token")->result->json;
   # Check parameters
 
-#  $devicelist = $devicelist->{records};
-#  Irssi::print($devicelist->{deviceName});
-#  return 0;
+  my $devicearray = $devicelist->{records};
+
+  $devicelist = $devicelist{deviceName};
+  
+  print $devicelist;
+
+  return 0;
   
   ref $join_args or return 0;
 
@@ -126,9 +129,8 @@ sub join_msg {
     print Dumper($join_args);
     print "join_rest";
     print Dumper($join_rest);
-#    print "Device list";
-#    print Dumper($devicelist);
   }
+
   if (all { !exists $join_args->{$_} or !length $join_args->{$_}} qw[deviceId deviceIds deviceNames]) {
     Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames and a value" );
     return 0;
