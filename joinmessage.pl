@@ -31,14 +31,16 @@ sub cmd_help {
     if ($args =~ /^join_msg *$/i) {
         print CLIENTCRAP <<HELP
 
-Syntax:
+%U%_Syntax:%_%U
 
 JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url <text>] [-clipboard] 
      [-priority <number>] [-tasker <text>][-smsnumber <number>] [-smstext] [-noencrypt] <text>
 
+
 %U%_Description:%_%U
 
     To send messages using the JOIN API. NO encryption at the moment. 
+
 
 %U%_Parameters:%_%U
 
@@ -80,9 +82,12 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
     
     
     %U%_Settings:%_%U
+    
       Please /set join_api_token, the rest is used for encrypting /set join_email and /set join_encryption_password
                   
+
     %U%_Example:%_%U
+    
       Send text to your device(s) called nexus*
         /JOIN_MSG -noencrypt -title "To my Phone" -text -deviceNames nexus Hello Phone! How are you today?
       Send a url to your home computer
