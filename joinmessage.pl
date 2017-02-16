@@ -113,13 +113,11 @@ sub join_msg {
   my $devicelist = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices?apikey=$join_token")->result->json;
   # Check parameters
 
-  my $devicearray = $devicelist->{records};
+  #my $devicearray = $devicelist->{records};
 
-  my $devicelist = $devicearray{deviceName};
+  #print $devicearray;
   
-  print $devicelist;
-
-  return 0;
+  #return 0;
   
   ref $join_args or return 0;
 
