@@ -115,7 +115,7 @@ sub join_msg {
 
   my $devicearray = $devicelist->{records};
 
-  $devicelist = $devicelist{deviceName};
+  my $devicelist = $devicearray{deviceName};
   
   print $devicelist;
 
