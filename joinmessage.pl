@@ -8,7 +8,7 @@ use MIME::Base64;
 use Data::Random qw(rand_chars); 
 use Crypt::Mode::CBC; 
 use Crypt::PBKDF2; 
-use Crypt::Misc qw(encode_b64); 
+use Crypt::Misc qw(encode_b64u encode_b64); 
 use URI::Escape qw(uri_escape);
 use Mojo;
 use Crypt::PRNG qw(random_bytes);  
@@ -232,7 +232,7 @@ sub join_msg {
         $join_rest = join("=:=",$join_args->{tasker}, $join_rest);
       }
       if (!exists $join_args->{noencrypt}) {
-        $join_text = join_encrypted($join_rest);
+        $join_text = uri_escape(join_encrypted($join_rest));
       } else {
           $join_text = uri_escape("$join_rest");
       }
@@ -261,11 +261,11 @@ sub join_msg {
 
   if ($join_args->{title}) {
     my $join_title;
-#    if (exists $join_args->{noencrypt}) {
+    if (exists $join_args->{noencrypt}) {
       $join_title = uri_escape($join_args->{title});
-#    } else {
-#      $join_title = join_encrypted($join_args->{title});
-#    }
+    } else {
+        $join_title = uri_escape(join_encrypted($join_args->{title}));
+    }
     $join_command = join("", $join_command, "&title=", $join_title);
   }
 
@@ -274,7 +274,7 @@ sub join_msg {
       if (exists $join_args->{noencrypt}) {
         $join_url =  uri_escape($join_args->{url});
       } else {
-          $join_url = join_encrypted($join_args->{url});
+          $join_url = uri_escape(join_encrypted($join_args->{url}));
       }
       $join_command = join("", $join_command, "&url=", $join_url);
     }
@@ -305,6 +305,7 @@ sub join_msg {
       my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
       if ($tx->{success} eq "true") {
       Irssi::print("Message sent successfully to $join_device");
+      $join_command =~ s/%/%%/g;
       Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
       } else {
         Irssi::print($tx->{errorMessage});
@@ -333,7 +334,7 @@ sub join_encrypted_old {
      my $key = Crypt::PBKDF2->new(iterations=>$iterationcount,output_len=>16)->PBKDF2($salt, $encryption_password);
      my $bytes = rand_chars(size => 16, set => 'all');
      my $cipher = Crypt::Mode::CBC->new('AES')->encrypt($text, $key, $bytes);
-     my $encrypted = join("=:=",encode_b64($bytes), encode_b64($cipher));
+     my $encrypted = join("=:=",encode_b64u($bytes), encode_b64u($cipher));
  
      return $encrypted;
 }
