@@ -11,6 +11,9 @@ use Crypt::PBKDF2;
 use Crypt::Misc qw(encode_b64); 
 use URI::Escape qw(uri_escape);
 use Mojo;
+use Crypt::PRNG qw(random_bytes);  
+use Crypt::KeyDerivation qw(pbkdf2); 
+
 # use OpenCA::PKCS7;
 use List::Util qw(all any);
 
@@ -224,12 +227,14 @@ sub join_msg {
   
   foreach my $item ("text", "smstext", "clipboard") {
     if (exists $join_args->{$item}) {
-      my $join_text = uri_escape("$join_rest");
+      my $join_text;
       if ($join_args->{tasker} && $item eq "text") {
-        $join_text = join("=:=",$join_args->{tasker}, $join_text);
+        $join_rest = join("=:=",$join_args->{tasker}, $join_rest);
       }
       if (!exists $join_args->{noencrypt}) {
-        $join_text = join_encrypted($join_text);
+        $join_text = join_encrypted($join_rest);
+      } else {
+          $join_text = uri_escape("$join_rest");
       }
       $join_command = join("", $join_command, "&$item=", $join_text);
       last;
@@ -255,17 +260,21 @@ sub join_msg {
 	# Optional parameters
 
   if ($join_args->{title}) {
-    my $join_title = uri_escape($join_args->{title});
-    if (!exists $join_args->{noencrypt}) {
-     $join_title = join_encrypted($join_title);
-    }
+    my $join_title;
+#    if (exists $join_args->{noencrypt}) {
+      $join_title = uri_escape($join_args->{title});
+#    } else {
+#      $join_title = join_encrypted($join_args->{title});
+#    }
     $join_command = join("", $join_command, "&title=", $join_title);
   }
 
     if ($join_args->{url}) {
-      my $join_url = uri_escape($join_args->{url});
-      if (!exists $join_args->{noencrypt}) {
-        $join_url = join_encrypted($join_url);
+      my $join_url;
+      if (exists $join_args->{noencrypt}) {
+        $join_url =  uri_escape($join_args->{url});
+      } else {
+          $join_url = join_encrypted($join_args->{url});
       }
       $join_command = join("", $join_command, "&url=", $join_url);
     }
@@ -287,8 +296,8 @@ sub join_msg {
 
   $join_command = join("", "sendPush?apikey=", $join_token, $join_command);
   
-  if (defined $join_args->{debug}) {
-    if (defined $join_args->{noencrypt}) {
+  if (exists $join_args->{debug}) {
+    if (exists $join_args->{noencrypt}) {
      $join_command =~ s/%/%%/g; # For the print to be correct in IRSSI
     } 
     Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
@@ -302,7 +311,20 @@ sub join_msg {
     }
   }
 
-sub join_encrypted {
+sub join_encrypted { 
+     my ($text) = @_ ? shift : $_; 
+     my $encryption_password = Irssi::settings_get_str('join_encryption_password'); 
+     my $salt = Irssi::settings_get_str('join_email'); 
+     my $key = pbkdf2($encryption_password, $salt, 5000, "SHA1", 32); # 32bytes = 256bit AES key 
+     my $bytes = random_bytes(16); 
+     my $cipher = Crypt::Mode::CBC->new('AES')->encrypt(encode("UTF-8", $text), $key, $bytes);
+     my $encrypted = join("=:=", encode_b64($bytes), encode_b64($cipher)); 
+     return $encrypted; 
+}
+
+
+
+sub join_encrypted_old {
      my ($text) = @_ ? shift : $_;
      my $encryption_password  = Irssi::settings_get_str('join_encryption_password');
      my $iterationcount = 5000;
