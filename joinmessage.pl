@@ -305,8 +305,8 @@ sub join_msg {
       my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
       if ($tx->{success} eq "true") {
       Irssi::print("Message sent successfully to $join_device");
-      $join_command =~ s/%/%%/g;
-      Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
+#      $join_command =~ s/%/%%/g;
+#      Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
       } else {
         Irssi::print($tx->{errorMessage});
       }
