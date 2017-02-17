@@ -79,6 +79,8 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
 
     -tasker:      The command you use in a tasker profile (before the =:=)
     
+    -all:         Send the message to all your devices. Only works with -deviceNames and -deviceids
+    
     
     %U%_Settings:%_%U
     
@@ -97,10 +99,71 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
         /JOIN_MSG -noencrypt -tasker irssi -text -deviceNames nexus I command my phone to do something.
       Set the clipboard on your computer or paste the text on your phone.
         /JOIN_MSG -noencrypt -clipboard -deviceNames nexus This is text that will be typed in the activ windows on my phone
+      Send clipboard to all your devices
+        /JOIN_MSG -noencrypt -deviceNames -all -clipboard This is my clipboard
 HELP
 ;
-Irssi::signal_stop;
+     Irssi::signal_stop;
     }
+  if ($args =~ /^join_list *$/i) {
+        print CLIENTCRAP <<HELP
+        
+%U%_Syntax:%_%U
+
+JOIN_LIST [-deviceName] [-id]
+
+
+%U%_Description:%_%U
+
+    List your JOIN Devices  
+
+
+%U%_Parameters:%_%U
+
+    -deviceName   Default value and do not need to be set if you don't want both name and ID. 
+      
+    -deviceId     If you like to get the deviceId and not the names
+    
+
+%U%_Example:%_%U
+
+   
+
+HELP
+;
+     Irssi::signal_stop;
+  }  
+}
+
+sub join_list {
+  my ($data, $server, $item) = @_;
+  my ($args, $rest) = Irssi::command_parse_options('join_list', $data);
+  my $ua  = Mojo::UserAgent->new;
+  my $join_token  = Irssi::settings_get_str('join_api_token');
+  my $device_list = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices?apikey=$join_token")->result->json;
+  my $device_array = $device_list->{records};
+  my $devicenames = '';
+  my $deviceids = '';
+  
+  for my $devices (@{$device_array}) {
+    my $devicename = ${$devices}{'deviceName'};
+    my $deviceid = ${$devices}{'deviceId'};
+    ($devicename) = split(/\s+/, $devicename);
+    $devicenames = join(", ", $devicename, $devicenames);
+    $deviceids = join(", ", $deviceid, $deviceids);
+  }
+  if (!$data) {
+    Irssi::print("Your deviceName's are $devicenames");
+  } elsif (exists $args->{deviceID}) {
+     Irssi::print("Your deviceName's are $devicenames");
+     Irssi::print("Your deviceID's are $deviceids");
+  } elsif ($data eq "deviceIds" || exists $args->{deviceID}) {
+     $deviceids =~ s/ //g;
+     return $deviceids;
+  } elsif ($data eq "deviceNames" || exists $args->{deviceName}) {
+     $devicenames =~ s/ //g;
+     return $devicenames;
+  }
 }
 
 sub join_msg {
@@ -110,15 +173,8 @@ sub join_msg {
   my $join_command  = '';
   my $join_text;
   my $ua  = Mojo::UserAgent->new;
-  my $devicelist = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/registration/v1/listDevices?apikey=$join_token")->result->json;
   # Check parameters
 
-  #my $devicearray = $devicelist->{records};
-
-  #print $devicearray;
-  
-  #return 0;
-  
   ref $join_args or return 0;
 
   if(exists $join_args->{debug}) { 
@@ -130,8 +186,10 @@ sub join_msg {
   }
 
   if (all { !exists $join_args->{$_} or !length $join_args->{$_}} qw[deviceId deviceIds deviceNames]) {
-    Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames and a value" );
-    return 0;
+    if (!exists $join_args->{all}) {
+     Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames and a value" );
+     return 0;
+    }
   }
 
   if (all { !exists $join_args->{$_}} qw[clipboard smstext text url ]) {
@@ -157,10 +215,10 @@ sub join_msg {
      return 0;
   }
   
-  if (!exists $join_args->{noencrypt} && $VERSION < 1 ){
-    Irssi::print("encryption is not working at the moment, please add -noencrypt");
-    return 0;
-  }
+#  if (!exists $join_args->{noencrypt} && $VERSION < 1 && !length $join_args->{noencrypt}){
+#    Irssi::print("encryption is not working at the moment, please add -noencrypt");
+#    return 0;
+#  }
   
   # Mandatory parameters 
   
@@ -178,10 +236,19 @@ sub join_msg {
     }
   }
   
+  my $join_device;
+  
   foreach my $device ("deviceId", "deviceIds", "deviceNames") {
     if (exists $join_args->{$device}) {
-      $join_command = join("", $join_command, "&$device=", $join_args->{$device});
-      last;
+      if (exists $join_args->{all} && $device ne "deviceId") {
+        my $device_list = join_list("$device");
+        $join_command = join("", $join_command, "&$device=", $device_list);
+        $join_device = $device_list;
+      } else {
+          $join_command = join("", $join_command, "&$device=", $join_args->{$device});
+          $join_device = $join_args->{$device};
+          last;
+      }
     }
   }
 
@@ -228,7 +295,7 @@ sub join_msg {
     } else {
       my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
       if ($tx->{success} eq "true") {
-      Irssi::print("Message sent successfully");
+      Irssi::print("Message sent successfully to $join_device");
       } else {
         Irssi::print($tx->{errorMessage});
       }
@@ -257,4 +324,6 @@ Irssi::settings_add_str('join', 'join_email', '');
 # Commands
 Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg', => 'join_msg');
-Irssi::command_set_options('join_msg' => '+title +deviceId +deviceIds +deviceNames +url clipboard +smsnumber smstext +priority noencrypt +tasker text debug');
+Irssi::command_bind ('join_list', => 'join_list');
+Irssi::command_set_options('join_msg' => '+title -deviceId -deviceIds -deviceNames +url clipboard +smsnumber smstext +priority -noencrypt +tasker text debug all');
+Irssi::command_set_options('join_list' => 'id deviceName deviceId');
