@@ -13,8 +13,6 @@ use URI::Escape qw(uri_escape);
 use Mojo;
 use Crypt::PRNG qw(random_bytes);  
 use Crypt::KeyDerivation qw(pbkdf2); 
-
-# use OpenCA::PKCS7;
 use List::Util qw(all any);
 
 our $VERSION = '0.5'; 
@@ -25,9 +23,11 @@ our %IRSSI = (
     name        => 'joinmessage',
     description => 'To send messages to join API https://joaoapps.com/join/',
     license     => 'GNU GPLv2 or later',
-    changed     => "2017-02-12"
+    changed     => "2017-02-17"
    );
-
+   
+   # Note Thanks for the help from http://search.cpan.org/~mik/ and Botje in #perl at Freenode 
+   
 sub cmd_help {
     my ($args) = @_;
     if ($args =~ /^join_msg *$/i) {
@@ -305,7 +305,7 @@ sub join_msg {
       my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
       if ($tx->{success} eq "true") {
       Irssi::print("Message sent successfully to $join_device");
-      
+      Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
       } else {
         Irssi::print($tx->{errorMessage});
       }
