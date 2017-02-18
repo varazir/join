@@ -260,11 +260,11 @@ sub join_msg {
 	# Optional parameters
 
   if ($join_args->{title}) {
-    my $join_title;
+    my $join_title  = $join_args->{title};
     if (exists $join_args->{noencrypt}) {
-      $join_title = uri_escape($join_args->{title});
+      $join_title = uri_escape($join_title);
     } else {
-        $join_title = uri_escape(join_encrypted($join_args->{title}));
+        $join_title = uri_escape(join_encrypted($join_title));
     }
     $join_command = join("", $join_command, "&title=", $join_title);
   }
@@ -305,8 +305,8 @@ sub join_msg {
       my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
       if ($tx->{success} eq "true") {
       Irssi::print("Message sent successfully to $join_device");
-#      $join_command =~ s/%/%%/g;
-#      Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
+      $join_command =~ s/%/%%/g;
+      Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
       } else {
         Irssi::print($tx->{errorMessage});
       }
@@ -319,7 +319,8 @@ sub join_encrypted {
      my $salt = Irssi::settings_get_str('join_email'); 
      my $key = pbkdf2($encryption_password, $salt, 5000, "SHA1", 32); # 32bytes = 256bit AES key 
      my $bytes = random_bytes(16); 
-     my $cipher = Crypt::Mode::CBC->new('AES')->encrypt(encode("UTF-8", $text), $key, $bytes);
+     my $cipher = Crypt::Mode::CBC->new('AES')->encrypt($text, $key, $bytes);
+     # my $cipher = Crypt::Mode::CBC->new('AES')->encrypt(encode("UTF-8", $text), $key, $bytes);
      my $encrypted = join("=:=", encode_b64($bytes), encode_b64($cipher)); 
      return $encrypted; 
 }
