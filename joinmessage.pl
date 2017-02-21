@@ -15,7 +15,7 @@ use Crypt::PRNG qw(random_bytes);
 use Crypt::KeyDerivation qw(pbkdf2); 
 use List::Util qw(all any);
 
-our $VERSION = '0.5'; 
+our $VERSION = '0.6';
 our %IRSSI = (
     authors     => 'Varazir',
     contact     => 'Varazir',
@@ -23,7 +23,7 @@ our %IRSSI = (
     name        => 'joinmessage',
     description => 'To send messages to join API https://joaoapps.com/join/',
     license     => 'GNU GPLv2 or later',
-    changed     => "2017-02-17"
+    changed     => "2017-02-20"
    );
    
    # Note Thanks for the help from http://search.cpan.org/~mik/ and Botje in #perl at Freenode 
@@ -41,7 +41,7 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
 
 %U%_Description:%_%U
 
-    To send messages using the JOIN API. NO encryption at the moment. 
+    To send messages using the JOIN API. Some encryption is working at the moment. If you get scrambeld text try adding -noencrypt
 
 
 %U%_Parameters:%_%U
@@ -93,17 +93,17 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
     %U%_Example:%_%U
     
       Send text to your device(s) called nexus*
-        /JOIN_MSG -noencrypt -title "To my Phone" -text -deviceNames nexus Hello Phone! How are you today?
+        /JOIN_MSG -title "To my Phone" -text -deviceNames nexus Hello Phone! How are you today?
       Send a url to your home computer
-        /JOIN_MSG -noencrypt -url https://google.com -deviceNames home
+        /JOIN_MSG -url https://google.com -deviceNames home
       Send SMS over your phone 
-        /JOIN_MSG -noencrypt -smsnumber 5554247 -smstext Hello, the sms was sent from IRC
+        /JOIN_MSG -smsnumber 5554247 -smstext Hello, the sms was sent from IRC
       Send command to tasker, a tasker profile listening to in this 'irssi=:=' need to be setup on your phone for this to work.
-        /JOIN_MSG -noencrypt -tasker irssi -text -deviceNames nexus I command my phone to do something.
+        /JOIN_MSG -tasker irssi -text -deviceNames nexus I command my phone to do something.
       Set the clipboard on your computer or paste the text on your phone.
-        /JOIN_MSG -noencrypt -clipboard -deviceNames nexus This is text that will be typed in the activ windows on my phone
+        /JOIN_MSG -clipboard -deviceNames nexus This is text that will be typed in the activ windows on my phone
       Send clipboard to all your devices
-        /JOIN_MSG -noencrypt -deviceNames -all -clipboard This is my clipboard
+        /JOIN_MSG -deviceNames -all -clipboard This is my clipboard
 HELP
 ;
      Irssi::signal_stop;
@@ -123,9 +123,9 @@ JOIN_LIST [-deviceName] [-id]
 
 %U%_Parameters:%_%U
 
-    -deviceName   Default value and do not need to be set if you don't want both name and ID. 
+    -deviceNames   Default value and do not need to be set if you don't want both name and ID. 
       
-    -deviceId     If you like to get the deviceId and not the names
+    -deviceIds     If you like to get the deviceId and not the names
     
 
 %U%_Example:%_%U
@@ -157,10 +157,10 @@ sub join_list {
   }
   if (!$data) {
     Irssi::print("Your deviceName's are $devicenames");
-  } elsif (exists $args->{deviceID}) {
+  } elsif (exists $args->{deviceIds}) {
      Irssi::print("Your deviceName's are $devicenames");
      Irssi::print("Your deviceID's are $deviceids");
-  } elsif ($data eq "deviceIds" || exists $args->{deviceID}) {
+  } elsif ($data eq "deviceIds") {
      $deviceids =~ s/ //g;
      return $deviceids;
   } elsif ($data eq "deviceNames" || exists $args->{deviceName}) {
@@ -258,26 +258,33 @@ sub join_msg {
   }
 
 	# Optional parameters
+  
+  
+      # Title
 
   if ($join_args->{title}) {
     my $join_title  = $join_args->{title};
-    if (exists $join_args->{noencrypt}) {
+    # if (!exists $join_args->{noencrypt}) {
       $join_title = uri_escape($join_title);
-    } else {
-        $join_title = uri_escape(join_encrypted($join_title));
-    }
+    #} else {
+        # $join_title = uri_escape(join_encrypted($join_title));
+    # }
     $join_command = join("", $join_command, "&title=", $join_title);
   }
+  
+      # URL 
 
     if ($join_args->{url}) {
-      my $join_url;
+      my $join_url = "$join_args->{url}";
       if (exists $join_args->{noencrypt}) {
-        $join_url =  uri_escape($join_args->{url});
+        $join_url =  uri_escape($join_url);
       } else {
-          $join_url = uri_escape(join_encrypted($join_args->{url}));
+          $join_url = uri_escape(join_encrypted($join_url));
       }
       $join_command = join("", $join_command, "&url=", $join_url);
     }
+    
+      # Priority
   
   if ($join_args->{priority}){
     my $join_priority = uri_escape($join_args->{priority});
@@ -305,8 +312,8 @@ sub join_msg {
       my $tx = $ua->get("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command")->result->json;
       if ($tx->{success} eq "true") {
       Irssi::print("Message sent successfully to $join_device");
-      $join_command =~ s/%/%%/g;
-      Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
+      # $join_command =~ s/%/%%/g;
+      # Irssi::print("https://joinjoaomgcd.appspot.com/_ah/api/messaging/v1/$join_command");
       } else {
         Irssi::print($tx->{errorMessage});
       }
@@ -351,4 +358,4 @@ Irssi::command_bind_first('help' => 'cmd_help');
 Irssi::command_bind ('join_msg', => 'join_msg');
 Irssi::command_bind ('join_list', => 'join_list');
 Irssi::command_set_options('join_msg' => '+title -deviceId -deviceIds -deviceNames +url clipboard +smsnumber smstext +priority -noencrypt +tasker text debug all');
-Irssi::command_set_options('join_list' => 'id deviceName deviceId');
+Irssi::command_set_options('join_list' => 'deviceName deviceIds');
