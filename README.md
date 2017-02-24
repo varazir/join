@@ -5,7 +5,7 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
 
 Description:
 
-    To send messages using the JOIN API. NO encryption at the moment. 
+    To send messages using the JOIN API.
 
 Parameters:
 
@@ -50,12 +50,13 @@ Parameters:
                   
     Example:
       Send text to your device(s) called nexus*
-        /JOIN_MSG -noencrypt -title "To my Phone" -text -deviceNames nexus Hello Phone! How are you today?
+        /JOIN_MSG -title "To my Phone" -text -deviceNames nexus Hello Phone! How are you today?
       Send a url to your home computer
-        /JOIN_MSG -noencrypt -url https://google.com -deviceNames home
+        /JOIN_MSG -url https://google.com -deviceNames home
       Send SMS over your phone 
-        /JOIN_MSG -noencrypt -smsnumber 5554247 -smstext Hello, the sms was sent from IRC
+        /JOIN_MSG -smsnumber 5554247 -smstext Hello, the sms was sent from IRC
       Send command to tasker, a tasker profile listening to in this 'irssi=:=' need to be setup on your phone for this to work.
-        /JOIN_MSG -noencrypt -tasker irssi -text -deviceNames nexus I command my phone to lock.
+        /JOIN_MSG -tasker irssi -text -deviceNames nexus I command my phone to lock.
       Set the clipboard on your computer or paste the text on your phone
-        /JOIN_MSG -noencrypt -clipboard -deviceNames nexus This is text that will be typed in the activ windows on my phone
+        /JOIN_MSG -clipboard -deviceNames nexus This is text that will be typed in the activ windows on my phone
+      
