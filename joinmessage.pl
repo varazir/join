@@ -36,7 +36,7 @@ sub cmd_help {
 %U%_Syntax:%_%U
 
 JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-deviceNames <text>] [-url <text>] [-clipboard] 
-     [-priority <number>] [-tasker <text>][-smsnumber <number>] [-smstext] [-noencrypt] <text>
+     [-priority <number>] [-tasker <text>][-smsnumber <number>] [-text] [-smstext] [-noencrypt] <text>
 
 
 %U%_Description:%_%U
@@ -64,6 +64,8 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
     -url:         A URL you want to open on the device. If a notification is created with this push, this 
                   will make clicking the notification open this URL.
 
+    -text:        If you are going tp push normal text and not clipboard/smstext
+    
     -clipboard:   Some <text> you want to set on the receiving device’s clipboard. If the device is an Android 
                   device and the Join accessibility service is enabled the text will be pasted right away in 
                   the app that’s currently opened.
@@ -190,7 +192,7 @@ sub join_msg {
 
   if (all { !exists $join_args->{$_} or !length $join_args->{$_}} qw[deviceId deviceIds deviceNames]) {
     if (!exists $join_args->{all}) {
-     Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames and a value" );
+     Irssi::print("You need to use one of this -deviceId, -deviceIds or -deviceNames and a value use /join_list to find the ID's of your devices" );
      return 0;
     }
   }
