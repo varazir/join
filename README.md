@@ -5,7 +5,7 @@ JOIN [-title "<text>"] [-deviceid <device id>] [-deviceids <device id>] [-device
 
 Description:
 
-    To send messages using the JOIN API.
+    To send messages in IRSSI using the JOIN API.
 
 Parameters:
 
