@@ -20,7 +20,7 @@ my $array = $ARGV[0];
 my $password = $ARGV[0];
 my $email = $ARGV[1];
 my $text = $ARGV[2];
-my $message = join_encrypted($text);
+my $message = uri_escape(join_encrypted($text));
 
 print STDOUT $message;
 
